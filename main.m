@@ -306,9 +306,6 @@ end
 %% save results and compute means
 function [mean_itrs,mean_acts] = save_outcomes(out_matrix,numdeltas,numregions,numagencies,numitems)
 
-% save raw activations and iterations
-save out_matrix out_matrix
-
 % make flat file for activations and iterations
 numrows=numdeltas*numregions*numagencies*numitems;
 out_flat=cell(numrows,6);
