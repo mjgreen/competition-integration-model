@@ -1,0 +1,965 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>This program reproduces Macrae, Spivey-Knowlton and Tanenhaus' 1998 competition-integration model of incremental sentence processing for the main clause / reduced relative synatctic ambiguity</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-09-20"><meta name="DC.source" content="main.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>This program reproduces Macrae, Spivey-Knowlton and Tanenhaus' 1998 competition-integration model of incremental sentence processing for the main clause / reduced relative synatctic ambiguity</h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">wrapper function main</a></li><li><a href="#2">normalised recurrence</a></li><li><a href="#3">function getInputs() gets inputs</a></li><li><a href="#4">save results and compute means</a></li><li><a href="#5">plot function reproduces MST98 fig 3</a></li></ul></div><h2 id="1">wrapper function main</h2><p>read inputs via getInputs() loops through deltas calling norm_recurr()</p><pre class="codeinput"><span class="keyword">function</span> main ()
+
+<span class="comment">% read from file the values of the input node yoked pairs. These are</span>
+<span class="comment">% normalised in the file</span>
+[WeightsRegion1, WeightsRegion2,WeightsRegion3,inputnodesAll] = getInputs();
+
+<span class="comment">% set global variable values</span>
+deltamin=0.006;
+deltamax=0.009;
+deltastep=0.0001;
+numdeltas=31;
+deltacounter=0;
+numsentences=80;
+numitems=40;
+numregions=3;
+numagencies=2;
+
+<span class="comment">% initialise output matrix for (1) delta, (2) activations at end of</span>
+<span class="comment">% competition for a region for each sentence; and (3) number of iterations</span>
+<span class="comment">% required to reach criterion for a region for a sentence</span>
+out_matrix=zeros(numdeltas,3,numregions,numagencies,numitems);
+
+<span class="comment">% start looping through deltas</span>
+<span class="keyword">for</span> deltacrit = deltamin : deltastep : deltamax
+
+    <span class="comment">% increment a counter that indexes number of delta runs</span>
+    deltacounter = deltacounter + 1;
+
+    <span class="comment">% call normalised recurrence function</span>
+    [out_matrix] = <span class="keyword">...</span>
+        norm_recurr(deltacrit, deltacounter, out_matrix, inputnodesAll, WeightsRegion1, WeightsRegion2, WeightsRegion3, numsentences);
+
+<span class="keyword">end</span> <span class="comment">% of all delta runs</span>
+
+<span class="comment">% process the output, saving a n-D matrix in .mat form, a flat matrix in</span>
+<span class="comment">% .dat means in .dat and returning mean iterations and activations for the</span>
+<span class="comment">% mst98 fig 3 plot reproduction</span>
+[mean_itrs, mean_acts] = save_outcomes(out_matrix,numdeltas,numregions,numagencies,numitems);
+
+<span class="comment">% try to replicate MST1998 fig 3</span>
+plotmst98fig3(mean_itrs,mean_acts);
+
+<span class="keyword">return</span> <span class="comment">% exits main</span>
+<span class="keyword">end</span> <span class="comment">% ends main</span>
+</pre><h2 id="2">normalised recurrence</h2><p>for a supplied value of delta, select a sentence, run through all 3 regions with that sentence, recording activations and iterations for that sentence. Keep going until all sentences are processed and return matrices containing all-sentence iterations and RR activations</p><pre class="codeinput"><span class="keyword">function</span> [out_matrix] =<span class="keyword">...</span>
+    norm_recurr(deltacrit, deltacounter, out_matrix, inputnodesAll, WeightsRegion1, WeightsRegion2, WeightsRegion3, numsentences)
+
+<span class="comment">% loop through sentences</span>
+<span class="keyword">for</span> sentence = 1:numsentences
+    <span class="comment">% set agency, good agent vs good patient</span>
+    <span class="keyword">if</span> sentence &lt;=40
+        agency=1;
+    <span class="keyword">else</span>
+        agency=2;
+    <span class="keyword">end</span>
+
+    <span class="comment">% set item number 1 to 40</span>
+    <span class="keyword">if</span> sentence &lt;=40
+        item=sentence;
+    <span class="keyword">else</span>
+        item=sentence-40;
+    <span class="keyword">end</span>
+
+    <span class="comment">% region 1 arrested by</span>
+    region=1;
+    <span class="comment">% get the input nodes for the new sentence</span>
+    inputnodes=inputnodesAll(sentence,:);
+    weights=WeightsRegion1;
+    numiterations=1;
+    hit_dyn = 0;
+
+    <span class="comment">% while we have yet to hit dynamic criterion</span>
+    <span class="keyword">while</span> (hit_dyn == 0)
+
+        <span class="comment">% normalise input nodes</span>
+        den1 = inputnodes(1)+inputnodes(2);
+        den2 = inputnodes(3)+inputnodes(4);
+        den3 = inputnodes(5)+inputnodes(6);
+        den4 = inputnodes(7)+inputnodes(8);
+        inputnodes(1)=inputnodes(1)/den1;
+        inputnodes(2)=inputnodes(2)/den1;
+        inputnodes(3)=inputnodes(3)/den2;
+        inputnodes(4)=inputnodes(4)/den2;
+        inputnodes(5)=inputnodes(5)/den3;
+        inputnodes(6)=inputnodes(6)/den3;
+        inputnodes(7)=inputnodes(7)/den4;
+        inputnodes(8)=inputnodes(8)/den4;
+
+        <span class="comment">% feedforward onto interpretation nodes (is integration)</span>
+        RRact=weights(1)*inputnodes(1)+weights(3)*inputnodes(3)+weights(5)*inputnodes(5)+weights(7)*inputnodes(7);
+        MCact=weights(2)*inputnodes(2)+weights(3)*inputnodes(4)+weights(5)*inputnodes(6)+weights(7)*inputnodes(8);
+
+        <span class="comment">% feedback onto input nodes (is competition)</span>
+        inputnodes(1)=inputnodes(1)+weights(1)*inputnodes(1)*RRact;
+        inputnodes(2)=inputnodes(2)+weights(2)*inputnodes(2)*MCact;
+        inputnodes(3)=inputnodes(3)+weights(3)*inputnodes(3)*RRact;
+        inputnodes(4)=inputnodes(4)+weights(4)*inputnodes(4)*MCact;
+        inputnodes(5)=inputnodes(5)+weights(5)*inputnodes(5)*RRact;
+        inputnodes(6)=inputnodes(6)+weights(6)*inputnodes(6)*MCact;
+        inputnodes(7)=inputnodes(7)+weights(7)*inputnodes(7)*RRact;
+        inputnodes(8)=inputnodes(8)+weights(8)*inputnodes(8)*MCact;
+
+        <span class="comment">% decrement the dynamic criterion on the first iteration the value</span>
+        <span class="comment">% of numiterations is one so dynamic_crit never starts at one, it</span>
+        <span class="comment">% is decremented before the test whether either interpretation node</span>
+        <span class="comment">% has exceeded the criterion</span>
+        dynamic_crit = 1 - (numiterations * deltacrit);
+
+        <span class="comment">% test whether either interpretation node has reached the dynamic</span>
+        <span class="comment">% criterion</span>
+        <span class="keyword">if</span> ((RRact &gt;= dynamic_crit) || (MCact &gt;= dynamic_crit))
+            hit_dyn = 1;
+            <span class="comment">% note that number of iterations is not increased in the event</span>
+            <span class="comment">% that an interpretation node has reached criterion</span>
+        <span class="keyword">else</span>
+            numiterations=numiterations+1;
+        <span class="keyword">end</span> <span class="comment">% test</span>
+
+    <span class="keyword">end</span> <span class="comment">% while hit_dyn==0 keep looping else fall through</span>
+
+    <span class="comment">% after dynamic criterion is reached by an interpretation node, record</span>
+    <span class="comment">% the number of iterations and the final (and *not* normalised) value</span>
+    <span class="comment">% of the interpretation node for this sentence in this region</span>
+    out_matrix(deltacounter,1,region,agency,item) = deltacrit;
+    out_matrix(deltacounter,2,region,agency,item) = RRact;
+    out_matrix(deltacounter,3,region,agency,item) = numiterations;
+
+    <span class="comment">% region 2 the detective</span>
+    region=2;
+    weights=WeightsRegion2;
+    numiterations=1;
+    hit_dyn = 0;
+
+    <span class="comment">% while we have yet to hit dynamic criterion</span>
+    <span class="keyword">while</span> (hit_dyn == 0)
+
+        <span class="comment">% normalise input nodes</span>
+        den1 = inputnodes(1)+inputnodes(2);
+        den2 = inputnodes(3)+inputnodes(4);
+        den3 = inputnodes(5)+inputnodes(6);
+        den4 = inputnodes(7)+inputnodes(8);
+        den5 = inputnodes(9)+inputnodes(10);
+        inputnodes(1)=inputnodes(1)/den1;
+        inputnodes(2)=inputnodes(2)/den1;
+        inputnodes(3)=inputnodes(3)/den2;
+        inputnodes(4)=inputnodes(4)/den2;
+        inputnodes(5)=inputnodes(5)/den3;
+        inputnodes(6)=inputnodes(6)/den3;
+        inputnodes(7)=inputnodes(7)/den4;
+        inputnodes(8)=inputnodes(8)/den4;
+        inputnodes(9)=inputnodes(9)/den5;
+        inputnodes(10)=inputnodes(10)/den5;
+
+        <span class="comment">% feedforward onto interpretation nodes (is integration)</span>
+        RRact=weights(1)*inputnodes(1)+weights(3)*inputnodes(3)+weights(5)*inputnodes(5)+weights(7)*inputnodes(7)+weights(9)*inputnodes(9);
+        MCact=weights(2)*inputnodes(2)+weights(4)*inputnodes(4)+weights(6)*inputnodes(6)+weights(8)*inputnodes(8)+weights(10)*inputnodes(10);
+
+        <span class="comment">% feedback onto input nodes (is competition)</span>
+        inputnodes(1)=inputnodes(1)+weights(1)*inputnodes(1)*RRact;
+        inputnodes(2)=inputnodes(2)+weights(2)*inputnodes(2)*MCact;
+        inputnodes(3)=inputnodes(3)+weights(3)*inputnodes(3)*RRact;
+        inputnodes(4)=inputnodes(4)+weights(4)*inputnodes(4)*MCact;
+        inputnodes(5)=inputnodes(5)+weights(5)*inputnodes(5)*RRact;
+        inputnodes(6)=inputnodes(6)+weights(6)*inputnodes(6)*MCact;
+        inputnodes(7)=inputnodes(7)+weights(7)*inputnodes(7)*RRact;
+        inputnodes(8)=inputnodes(8)+weights(8)*inputnodes(8)*MCact;
+        inputnodes(9)=inputnodes(9)+weights(9)*inputnodes(9)*RRact;
+        inputnodes(10)=inputnodes(10)+weights(10)*inputnodes(10)*MCact;
+
+        <span class="comment">% decrement the dynamic criterion on the first iteration the value</span>
+        <span class="comment">% of numiterations is one so dynamic_crit never starts at one, it</span>
+        <span class="comment">% is decremented before the test whether either interpretation node</span>
+        <span class="comment">% has exceeded the criterion</span>
+        dynamic_crit = 1 - (numiterations * deltacrit);
+
+        <span class="comment">% test whether either interpretation node has reached the dynamic</span>
+        <span class="comment">% criterion</span>
+        <span class="keyword">if</span> ((RRact &gt;= dynamic_crit) || (MCact &gt;= dynamic_crit))
+            hit_dyn = 1;
+            <span class="comment">% note that number of iterations is not increased in the event</span>
+            <span class="comment">% that an interpretation node has reached criterion</span>
+        <span class="keyword">else</span>
+            numiterations=numiterations+1;
+        <span class="keyword">end</span> <span class="comment">% test</span>
+    <span class="keyword">end</span> <span class="comment">% while hit_dyn==0 keep looping else fall through</span>
+
+    <span class="comment">% after dynamic criterion is reached by an interpretation node, record</span>
+    <span class="comment">% the number of iterations and the final (and *not* normalised) value</span>
+    <span class="comment">% of the interpretation node for this sentence in this region</span>
+    out_matrix(deltacounter,1,region,agency,item) = deltacrit;
+    out_matrix(deltacounter,2,region,agency,item) = RRact;
+    out_matrix(deltacounter,3,region,agency,item) = numiterations;
+
+    <span class="comment">% region 3 was guilty</span>
+    region=3;
+    weights=WeightsRegion3;
+    numiterations=1;
+    hit_dyn = 0;
+
+    <span class="comment">% while we have yet to hit dynamic criterion</span>
+    <span class="keyword">while</span> (hit_dyn == 0)
+
+        <span class="comment">% normalise input nodes</span>
+        den1 = inputnodes(1)+inputnodes(2);
+        den2 = inputnodes(3)+inputnodes(4);
+        den3 = inputnodes(5)+inputnodes(6);
+        den4 = inputnodes(7)+inputnodes(8);
+        den5 = inputnodes(9)+inputnodes(10);
+        den6 = inputnodes(11)+inputnodes(12);
+        inputnodes(1)=inputnodes(1)/den1;
+        inputnodes(2)=inputnodes(2)/den1;
+        inputnodes(3)=inputnodes(3)/den2;
+        inputnodes(4)=inputnodes(4)/den2;
+        inputnodes(5)=inputnodes(5)/den3;
+        inputnodes(6)=inputnodes(6)/den3;
+        inputnodes(7)=inputnodes(7)/den4;
+        inputnodes(8)=inputnodes(8)/den4;
+        inputnodes(9)=inputnodes(9)/den5;
+        inputnodes(10)=inputnodes(10)/den5;
+        inputnodes(11)=inputnodes(11)/den6;
+        inputnodes(12)=inputnodes(12)/den6;
+
+        <span class="comment">% feedforward onto interpretation nodes (is integration)</span>
+        RRact=weights(1)*inputnodes(1)+weights(3)*inputnodes(3)+weights(5)*inputnodes(5)+weights(7)*inputnodes(7)+weights(9)*inputnodes(9)+weights(11)*inputnodes(11);
+        MCact=weights(2)*inputnodes(2)+weights(4)*inputnodes(4)+weights(6)*inputnodes(6)+weights(8)*inputnodes(8)+weights(10)*inputnodes(10)+weights(12)*inputnodes(12);
+
+        <span class="comment">% feedback onto input nodes (is competition)</span>
+        inputnodes(1)=inputnodes(1)+weights(1)*inputnodes(1)*RRact;
+        inputnodes(2)=inputnodes(2)+weights(2)*inputnodes(2)*MCact;
+        inputnodes(3)=inputnodes(3)+weights(3)*inputnodes(3)*RRact;
+        inputnodes(4)=inputnodes(4)+weights(4)*inputnodes(4)*MCact;
+        inputnodes(5)=inputnodes(5)+weights(5)*inputnodes(5)*RRact;
+        inputnodes(6)=inputnodes(6)+weights(6)*inputnodes(6)*MCact;
+        inputnodes(7)=inputnodes(7)+weights(7)*inputnodes(7)*RRact;
+        inputnodes(8)=inputnodes(8)+weights(8)*inputnodes(8)*MCact;
+        inputnodes(9)=inputnodes(9)+weights(9)*inputnodes(9)*RRact;
+        inputnodes(10)=inputnodes(10)+weights(10)*inputnodes(10)*MCact;
+        inputnodes(11)=inputnodes(11)+weights(11)*inputnodes(11)*RRact;
+        inputnodes(12)=inputnodes(12)+weights(12)*inputnodes(12)*MCact;
+
+        <span class="comment">% decrement the dynamic criterion on the first iteration the value</span>
+        <span class="comment">% of numiterations is one so dynamic_crit never starts at one, it</span>
+        <span class="comment">% is decremented before the test whether either interpretation node</span>
+        <span class="comment">% has exceeded the criterion</span>
+        dynamic_crit = 1 - (numiterations * deltacrit);
+
+        <span class="comment">% test whether either interpretation node has reached the dynamic</span>
+        <span class="comment">% criterion</span>
+        <span class="keyword">if</span> ((RRact &gt;= dynamic_crit) || (MCact &gt;= dynamic_crit))
+            hit_dyn = 1;
+        <span class="keyword">else</span>
+            numiterations=numiterations+1;
+        <span class="keyword">end</span> <span class="comment">% test</span>
+    <span class="keyword">end</span> <span class="comment">% while hit_dyn==0 keep looping else fall through</span>
+
+    <span class="comment">% after dynamic criterion is reached by an interpretation node, record</span>
+    <span class="comment">% the number of iterations and the final (and *not* normalised) value</span>
+    <span class="comment">% of the interpretation node for this sentence in this region</span>
+    out_matrix(deltacounter,1,region,agency,item) = deltacrit;
+    out_matrix(deltacounter,2,region,agency,item) = RRact;
+    out_matrix(deltacounter,3,region,agency,item) = numiterations;
+
+
+<span class="keyword">end</span> <span class="comment">% all sentences are complete for all regions</span>
+
+<span class="keyword">return</span> <span class="comment">% exit norm_recurr return to main to grab another delta</span>
+<span class="keyword">end</span> <span class="comment">% end norm_recurr</span>
+</pre><h2 id="3">function getInputs() gets inputs</h2><pre class="codeinput"> <span class="keyword">function</span> [WeightsRegion1, WeightsRegion2,WeightsRegion3,InputnodesAll] = getInputs()
+<span class="comment">% READ ALL INPUT FILES, WEIGHTS AND INPUTNODES</span>
+fileID = fopen(<span class="string">'region1weights.txt'</span>,<span class="string">'r'</span>);
+formatSpec = <span class="string">'%f %f %f %f %f %f %f %f'</span>;
+sizeA = [8 1];
+WeightsRegion1 = fscanf(fileID,formatSpec,sizeA)';
+fclose(fileID);
+
+fileID = fopen(<span class="string">'region2weights.txt'</span>,<span class="string">'r'</span>);
+formatSpec = <span class="string">'%f %f %f %f %f %f %f %f %f %f'</span>;
+sizeA = [10 1];
+WeightsRegion2 = fscanf(fileID,formatSpec,sizeA)';
+fclose(fileID);
+
+fileID = fopen(<span class="string">'region3weights.txt'</span>,<span class="string">'r'</span>);
+formatSpec = <span class="string">'%f %f %f %f %f %f %f %f %f %f %f %f'</span>;
+sizeA = [12 1];
+WeightsRegion3 = fscanf(fileID,formatSpec,sizeA)';
+fclose(fileID);
+
+filename=<span class="string">'inputnodevalues.txt'</span>;
+fileID = fopen(filename,<span class="string">'r'</span>);
+formatSpec = <span class="string">'%f %f %f %f %f %f %f %f %f %f %f %f'</span>;
+sizeA = [12 80];
+InputnodesAll = fscanf(fileID,formatSpec,sizeA)';
+fclose(fileID);
+<span class="keyword">end</span>
+</pre><h2 id="4">save results and compute means</h2><pre class="codeinput"><span class="keyword">function</span> [mean_itrs,mean_acts] = save_outcomes(out_matrix,numdeltas,numregions,numagencies,numitems)
+
+<span class="comment">% make flat file for activations and iterations</span>
+numrows=numdeltas*numregions*numagencies*numitems;
+out_flat=cell(numrows,6);
+
+row=0;
+<span class="keyword">for</span> delta=1:numdeltas
+    <span class="keyword">for</span> agency=1:numagencies
+        <span class="keyword">for</span> region=1:numregions
+            <span class="keyword">for</span> item=1:numitems
+                row=row+1;
+                out_flat{row,1}=out_matrix(delta,1,region,agency,item);
+                <span class="keyword">if</span> agency==1
+                    out_flat{row,2}=<span class="string">'good_agent'</span>;
+                <span class="keyword">else</span>
+                    out_flat{row,2}=<span class="string">'good_patient'</span>;
+                <span class="keyword">end</span>
+                <span class="keyword">if</span> region==1
+                    out_flat{row,3}=<span class="string">'verb_by'</span>;
+                <span class="keyword">elseif</span> region==2
+                    out_flat{row,3}=<span class="string">'agentNP'</span>;
+                <span class="keyword">elseif</span> region==3
+                    out_flat{row,3}=<span class="string">'mainVerb'</span>;
+                <span class="keyword">end</span>
+                out_flat{row,4}=item;
+                <span class="keyword">switch</span> item
+                    <span class="keyword">case</span> 1 ; firstverb=<span class="string">'accused_by'</span>;
+                    <span class="keyword">case</span> 2 ; firstverb=<span class="string">'arrested_by'</span>;
+                    <span class="keyword">case</span> 3 ; firstverb=<span class="string">'carried_by'</span>;
+                    <span class="keyword">case</span> 4 ; firstverb=<span class="string">'convicted_by'</span>;
+                    <span class="keyword">case</span> 5 ; firstverb=<span class="string">'cured_by'</span>;
+                    <span class="keyword">case</span> 6 ; firstverb=<span class="string">'entertained_by'</span>;
+                    <span class="keyword">case</span> 7 ; firstverb=<span class="string">'evaluated_by'</span>;
+                    <span class="keyword">case</span> 8 ; firstverb=<span class="string">'fired_by'</span>;
+                    <span class="keyword">case</span> 9 ; firstverb=<span class="string">'frightened_by'</span>;
+                    <span class="keyword">case</span> 10 ; firstverb=<span class="string">'graded_by'</span>;
+                    <span class="keyword">case</span> 11 ; firstverb=<span class="string">'hired_by'</span>;
+                    <span class="keyword">case</span> 12 ; firstverb=<span class="string">'hypnotized_by'</span>;
+                    <span class="keyword">case</span> 13 ; firstverb=<span class="string">'instructed_by'</span>;
+                    <span class="keyword">case</span> 14 ; firstverb=<span class="string">'interrogated_by'</span>;
+                    <span class="keyword">case</span> 15 ; firstverb=<span class="string">'interviewed_by'</span>;
+                    <span class="keyword">case</span> 16 ; firstverb=<span class="string">'invited_by'</span>;
+                    <span class="keyword">case</span> 17 ; firstverb=<span class="string">'questioned_by'</span>;
+                    <span class="keyword">case</span> 18 ; firstverb=<span class="string">'rescued_by'</span>;
+                    <span class="keyword">case</span> 19 ; firstverb=<span class="string">'sentenced_by'</span>;
+                    <span class="keyword">case</span> 20 ; firstverb=<span class="string">'served_by'</span>;
+                    <span class="keyword">case</span> 21 ; firstverb=<span class="string">'shot_by'</span>;
+                    <span class="keyword">case</span> 22 ; firstverb=<span class="string">'slaughtered_by'</span>;
+                    <span class="keyword">case</span> 23 ; firstverb=<span class="string">'terrorized_by'</span>;
+                    <span class="keyword">case</span> 24 ; firstverb=<span class="string">'tortured_by'</span>;
+                    <span class="keyword">case</span> 25 ; firstverb=<span class="string">'captured_by'</span>;
+                    <span class="keyword">case</span> 26 ; firstverb=<span class="string">'chased_by'</span>;
+                    <span class="keyword">case</span> 27 ; firstverb=<span class="string">'devoured_by'</span>;
+                    <span class="keyword">case</span> 28 ; firstverb=<span class="string">'dismissed_by'</span>;
+                    <span class="keyword">case</span> 29 ; firstverb=<span class="string">'examined_by'</span>;
+                    <span class="keyword">case</span> 30 ; firstverb=<span class="string">'executed_by'</span>;
+                    <span class="keyword">case</span> 31 ; firstverb=<span class="string">'investigated_by'</span>;
+                    <span class="keyword">case</span> 32 ; firstverb=<span class="string">'kicked_by'</span>;
+                    <span class="keyword">case</span> 33 ; firstverb=<span class="string">'lectured_by'</span>;
+                    <span class="keyword">case</span> 34 ; firstverb=<span class="string">'lifted_by'</span>;
+                    <span class="keyword">case</span> 35 ; firstverb=<span class="string">'punished_by'</span>;
+                    <span class="keyword">case</span> 36 ; firstverb=<span class="string">'recognized_by'</span>;
+                    <span class="keyword">case</span> 37 ; firstverb=<span class="string">'searched_by'</span>;
+                    <span class="keyword">case</span> 38 ; firstverb=<span class="string">'studied_by'</span>;
+                    <span class="keyword">case</span> 39 ; firstverb=<span class="string">'taught_by'</span>;
+                    <span class="keyword">case</span> 40 ; firstverb=<span class="string">'worshipped_by'</span>;
+                <span class="keyword">end</span>
+                out_flat{row,5}=firstverb;
+                out_flat{row,6}=out_matrix(delta,2,region,agency,item);
+                out_flat{row,7}=out_matrix(delta,3,region,agency,item);
+
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span> <span class="comment">% end of all deltas</span>
+
+OUT_FLAT=cell2table(out_flat,<span class="string">'VariableNames'</span>, <span class="keyword">...</span>
+    {<span class="string">'Delta'</span>,<span class="string">'agency'</span>,<span class="string">'region'</span>,<span class="string">'item'</span>,<span class="string">'verbed_by'</span>,<span class="string">'RRact'</span>,<span class="string">'numiterations'</span>});
+writetable(OUT_FLAT, <span class="string">'out_flat.dat'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\t'</span>)
+
+<span class="comment">% compute mean iters and activations</span>
+mean_acts=zeros(numdeltas,7);
+mean_itrs=zeros(numdeltas,7);
+
+<span class="keyword">for</span> delta = 1:numdeltas
+    <span class="comment">% activations</span>
+    mean_acts(delta,1)=mean(out_matrix(delta,1,1,1,:));
+    mean_acts(delta,2)=mean(out_matrix(delta,2,1,1,:));
+    mean_acts(delta,3)=mean(out_matrix(delta,2,2,1,:));
+    mean_acts(delta,4)=mean(out_matrix(delta,2,3,1,:));
+    mean_acts(delta,5)=mean(out_matrix(delta,2,1,2,:));
+    mean_acts(delta,6)=mean(out_matrix(delta,2,2,2,:));
+    mean_acts(delta,7)=mean(out_matrix(delta,2,3,2,:));
+    <span class="comment">% iterations</span>
+    mean_itrs(delta,1)=mean(out_matrix(delta,1,1,1,:));
+    mean_itrs(delta,2)=mean(out_matrix(delta,3,1,1,:));
+    mean_itrs(delta,3)=mean(out_matrix(delta,3,2,1,:));
+    mean_itrs(delta,4)=mean(out_matrix(delta,3,3,1,:));
+    mean_itrs(delta,5)=mean(out_matrix(delta,3,1,2,:));
+    mean_itrs(delta,6)=mean(out_matrix(delta,3,2,2,:));
+    mean_itrs(delta,7)=mean(out_matrix(delta,3,3,2,:));
+<span class="keyword">end</span>
+
+MEAN_ACTS=array2table(mean_acts,<span class="string">'VariableNames'</span>, <span class="keyword">...</span>
+    {<span class="string">'Delta'</span>,<span class="string">'R1_a_rr'</span>,<span class="string">'R2_a_rr'</span>,<span class="string">'R3_a_rr'</span>,<span class="string">'R1_p_rr'</span>,<span class="string">'R2_p_rr'</span>,<span class="string">'R3_p_rr'</span>});
+writetable(MEAN_ACTS, <span class="string">'out_activations_means.dat'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\t'</span>)
+
+MEAN_ITRS=array2table(mean_itrs,<span class="string">'VariableNames'</span>, <span class="keyword">...</span>
+    {<span class="string">'Delta'</span>,<span class="string">'R1_a'</span>,<span class="string">'R2_a'</span>,<span class="string">'R3_a'</span>,<span class="string">'R1_p'</span>,<span class="string">'R2_p'</span>,<span class="string">'R3_p'</span>});
+writetable(MEAN_ITRS, <span class="string">'out_iterations_means.dat'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\t'</span>)
+<span class="keyword">end</span> <span class="comment">% save_outcomes</span>
+</pre><h2 id="5">plot function reproduces MST98 fig 3</h2><pre class="codeinput"><span class="keyword">function</span> plotmst98fig3(mean_itrs,mean_acts)
+
+<span class="comment">% mst98 fig 3</span>
+lines = zeros(2,3); <span class="comment">% initialise matrix to hold y values</span>
+means_i = mean(mean_itrs); <span class="comment">% compute y values : iterations</span>
+lines(1,:) = means_i(2:4); <span class="comment">% y values for first line (good agents iterations)</span>
+lines(2,:) = means_i(5:7); <span class="comment">% y values for second line (good patients iterations)</span>
+means_a=mean(mean_acts); <span class="comment">% numeric labels for points are activations</span>
+x=1:3; <span class="comment">% 3 regions on the x axis</span>
+figure(<span class="string">'Visible'</span>,<span class="string">'on'</span>, <span class="string">'WindowStyle'</span>,<span class="string">'docked'</span>, <span class="string">'Name'</span>,<span class="string">'mst98fig3'</span>);
+plot(x,lines(1,:)',<span class="string">'-o'</span>,<span class="string">'MarkerSize'</span>,10, <span class="string">'MarkerFaceColor'</span>, <span class="string">'white'</span>) <span class="comment">% plot solid line with opaque circles as points</span>
+hold <span class="string">on</span>; <span class="comment">% permit additional plotting</span>
+text(x(1)-.05,lines(1,1)-2,num2str(means_a(2),2)); <span class="comment">% put the numbers for activations by the points</span>
+text(x(2)-.05,lines(1,2)-2,num2str(means_a(3),2));
+text(x(3)-.05,lines(1,3)-2,num2str(means_a(4),2));
+plot(x, lines(2,:)', <span class="string">'-s'</span>, <span class="string">'MarkerSize'</span>, 10, <span class="string">'MarkerFaceColor'</span>,<span class="string">'white'</span>) <span class="comment">% plot solid line with opaque squares as points</span>
+text(x(1)-.05,lines(2,1)-2,num2str(means_a(5),2)); <span class="comment">% put the numbers for activations by the points</span>
+text(x(2)-.05,lines(2,2)-2,num2str(means_a(6),2));
+text(x(3)-.05,lines(2,3)-2,num2str(means_a(7),2));
+hlegend=legend(<span class="string">'Good Agents'</span>,<span class="string">'Good Patients'</span>); <span class="comment">% make the legend but don't put it yet</span>
+set(hlegend,<span class="string">'FontSize'</span>,14); <span class="comment">% bigger legend text</span>
+legend <span class="string">boxoff</span>; <span class="comment">% no box round legend</span>
+dim = [.2 .5 .3 .3]; <span class="comment">% annotation location as proportion of plot real estate</span>
+str = <span class="string">'Numbers are mean activation values of the RR interpretation node following competition in that region'</span>; <span class="comment">% annotation string</span>
+annotation(<span class="string">'textbox'</span>,dim,<span class="string">'String'</span>,str,<span class="string">'FitBoxToText'</span>,<span class="string">'on'</span>); <span class="comment">% put the annotation on</span>
+axis([0.5 3.5 0 50]); <span class="comment">% axis limits</span>
+ax = gca; <span class="comment">% get a handle for axis is gca</span>
+ax.XTick=[1 2 3 ]; <span class="comment">% put the x ticks</span>
+ax.XTickLabel = {<span class="string">'arrested by'</span>,<span class="string">'the detective'</span>,<span class="string">'was guilty'</span>}; <span class="comment">% put the x tick labels</span>
+ylabel(<span class="string">'iterations'</span>); <span class="comment">% put the y axis label</span>
+title(<span class="string">'reproducing MST98 fig 3'</span>); <span class="comment">% put the title</span>
+saveas(gcf,<span class="string">'MST_1998_fig3_reproduction.jpg'</span>) <span class="comment">% save the graph to file</span>
+<span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="main_01.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% This program reproduces Macrae, Spivey-Knowlton and Tanenhaus' 1998 competition-integration model of incremental sentence processing for the main clause / reduced relative synatctic ambiguity
+
+%% wrapper function main
+% read inputs via getInputs() loops through deltas calling norm_recurr()
+function main ()
+
+% read from file the values of the input node yoked pairs. These are
+% normalised in the file
+[WeightsRegion1, WeightsRegion2,WeightsRegion3,inputnodesAll] = getInputs();
+
+% set global variable values
+deltamin=0.006;
+deltamax=0.009;
+deltastep=0.0001;
+numdeltas=31;
+deltacounter=0;
+numsentences=80;
+numitems=40;
+numregions=3;
+numagencies=2;
+
+% initialise output matrix for (1) delta, (2) activations at end of
+% competition for a region for each sentence; and (3) number of iterations
+% required to reach criterion for a region for a sentence
+out_matrix=zeros(numdeltas,3,numregions,numagencies,numitems);
+
+% start looping through deltas
+for deltacrit = deltamin : deltastep : deltamax
+    
+    % increment a counter that indexes number of delta runs
+    deltacounter = deltacounter + 1;
+    
+    % call normalised recurrence function
+    [out_matrix] = ...
+        norm_recurr(deltacrit, deltacounter, out_matrix, inputnodesAll, WeightsRegion1, WeightsRegion2, WeightsRegion3, numsentences);
+    
+end % of all delta runs
+
+% process the output, saving a n-D matrix in .mat form, a flat matrix in
+% .dat means in .dat and returning mean iterations and activations for the
+% mst98 fig 3 plot reproduction
+[mean_itrs, mean_acts] = save_outcomes(out_matrix,numdeltas,numregions,numagencies,numitems);
+
+% try to replicate MST1998 fig 3
+plotmst98fig3(mean_itrs,mean_acts);
+
+return % exits main
+end % ends main
+
+%% normalised recurrence
+% for a supplied value of delta, select a sentence, run through all 3
+% regions with that sentence, recording activations and iterations for that
+% sentence. Keep going until all sentences are processed and return
+% matrices containing all-sentence iterations and RR activations
+function [out_matrix] =...
+    norm_recurr(deltacrit, deltacounter, out_matrix, inputnodesAll, WeightsRegion1, WeightsRegion2, WeightsRegion3, numsentences)
+
+% loop through sentences
+for sentence = 1:numsentences
+    % set agency, good agent vs good patient
+    if sentence <=40
+        agency=1;
+    else
+        agency=2;
+    end
+    
+    % set item number 1 to 40
+    if sentence <=40
+        item=sentence;
+    else
+        item=sentence-40;
+    end
+    
+    % region 1 arrested by
+    region=1;
+    % get the input nodes for the new sentence
+    inputnodes=inputnodesAll(sentence,:);
+    weights=WeightsRegion1;
+    numiterations=1;
+    hit_dyn = 0;
+    
+    % while we have yet to hit dynamic criterion
+    while (hit_dyn == 0)
+        
+        % normalise input nodes
+        den1 = inputnodes(1)+inputnodes(2);
+        den2 = inputnodes(3)+inputnodes(4);
+        den3 = inputnodes(5)+inputnodes(6);
+        den4 = inputnodes(7)+inputnodes(8);
+        inputnodes(1)=inputnodes(1)/den1;
+        inputnodes(2)=inputnodes(2)/den1;
+        inputnodes(3)=inputnodes(3)/den2;
+        inputnodes(4)=inputnodes(4)/den2;
+        inputnodes(5)=inputnodes(5)/den3;
+        inputnodes(6)=inputnodes(6)/den3;
+        inputnodes(7)=inputnodes(7)/den4;
+        inputnodes(8)=inputnodes(8)/den4;
+        
+        % feedforward onto interpretation nodes (is integration)
+        RRact=weights(1)*inputnodes(1)+weights(3)*inputnodes(3)+weights(5)*inputnodes(5)+weights(7)*inputnodes(7);
+        MCact=weights(2)*inputnodes(2)+weights(3)*inputnodes(4)+weights(5)*inputnodes(6)+weights(7)*inputnodes(8);
+        
+        % feedback onto input nodes (is competition)
+        inputnodes(1)=inputnodes(1)+weights(1)*inputnodes(1)*RRact;
+        inputnodes(2)=inputnodes(2)+weights(2)*inputnodes(2)*MCact;
+        inputnodes(3)=inputnodes(3)+weights(3)*inputnodes(3)*RRact;
+        inputnodes(4)=inputnodes(4)+weights(4)*inputnodes(4)*MCact;
+        inputnodes(5)=inputnodes(5)+weights(5)*inputnodes(5)*RRact;
+        inputnodes(6)=inputnodes(6)+weights(6)*inputnodes(6)*MCact;
+        inputnodes(7)=inputnodes(7)+weights(7)*inputnodes(7)*RRact;
+        inputnodes(8)=inputnodes(8)+weights(8)*inputnodes(8)*MCact;
+        
+        % decrement the dynamic criterion on the first iteration the value
+        % of numiterations is one so dynamic_crit never starts at one, it
+        % is decremented before the test whether either interpretation node
+        % has exceeded the criterion
+        dynamic_crit = 1 - (numiterations * deltacrit);
+        
+        % test whether either interpretation node has reached the dynamic
+        % criterion
+        if ((RRact >= dynamic_crit) || (MCact >= dynamic_crit))
+            hit_dyn = 1;
+            % note that number of iterations is not increased in the event
+            % that an interpretation node has reached criterion
+        else
+            numiterations=numiterations+1;
+        end % test
+        
+    end % while hit_dyn==0 keep looping else fall through
+    
+    % after dynamic criterion is reached by an interpretation node, record
+    % the number of iterations and the final (and *not* normalised) value
+    % of the interpretation node for this sentence in this region
+    out_matrix(deltacounter,1,region,agency,item) = deltacrit;
+    out_matrix(deltacounter,2,region,agency,item) = RRact;
+    out_matrix(deltacounter,3,region,agency,item) = numiterations;
+    
+    % region 2 the detective
+    region=2;
+    weights=WeightsRegion2;
+    numiterations=1;
+    hit_dyn = 0;
+    
+    % while we have yet to hit dynamic criterion
+    while (hit_dyn == 0)
+        
+        % normalise input nodes
+        den1 = inputnodes(1)+inputnodes(2);
+        den2 = inputnodes(3)+inputnodes(4);
+        den3 = inputnodes(5)+inputnodes(6);
+        den4 = inputnodes(7)+inputnodes(8);
+        den5 = inputnodes(9)+inputnodes(10);
+        inputnodes(1)=inputnodes(1)/den1;
+        inputnodes(2)=inputnodes(2)/den1;
+        inputnodes(3)=inputnodes(3)/den2;
+        inputnodes(4)=inputnodes(4)/den2;
+        inputnodes(5)=inputnodes(5)/den3;
+        inputnodes(6)=inputnodes(6)/den3;
+        inputnodes(7)=inputnodes(7)/den4;
+        inputnodes(8)=inputnodes(8)/den4;
+        inputnodes(9)=inputnodes(9)/den5;
+        inputnodes(10)=inputnodes(10)/den5;
+        
+        % feedforward onto interpretation nodes (is integration)
+        RRact=weights(1)*inputnodes(1)+weights(3)*inputnodes(3)+weights(5)*inputnodes(5)+weights(7)*inputnodes(7)+weights(9)*inputnodes(9);
+        MCact=weights(2)*inputnodes(2)+weights(4)*inputnodes(4)+weights(6)*inputnodes(6)+weights(8)*inputnodes(8)+weights(10)*inputnodes(10);
+        
+        % feedback onto input nodes (is competition)
+        inputnodes(1)=inputnodes(1)+weights(1)*inputnodes(1)*RRact;
+        inputnodes(2)=inputnodes(2)+weights(2)*inputnodes(2)*MCact;
+        inputnodes(3)=inputnodes(3)+weights(3)*inputnodes(3)*RRact;
+        inputnodes(4)=inputnodes(4)+weights(4)*inputnodes(4)*MCact;
+        inputnodes(5)=inputnodes(5)+weights(5)*inputnodes(5)*RRact;
+        inputnodes(6)=inputnodes(6)+weights(6)*inputnodes(6)*MCact;
+        inputnodes(7)=inputnodes(7)+weights(7)*inputnodes(7)*RRact;
+        inputnodes(8)=inputnodes(8)+weights(8)*inputnodes(8)*MCact;
+        inputnodes(9)=inputnodes(9)+weights(9)*inputnodes(9)*RRact;
+        inputnodes(10)=inputnodes(10)+weights(10)*inputnodes(10)*MCact;
+        
+        % decrement the dynamic criterion on the first iteration the value
+        % of numiterations is one so dynamic_crit never starts at one, it
+        % is decremented before the test whether either interpretation node
+        % has exceeded the criterion
+        dynamic_crit = 1 - (numiterations * deltacrit);
+        
+        % test whether either interpretation node has reached the dynamic
+        % criterion
+        if ((RRact >= dynamic_crit) || (MCact >= dynamic_crit))
+            hit_dyn = 1;
+            % note that number of iterations is not increased in the event
+            % that an interpretation node has reached criterion
+        else
+            numiterations=numiterations+1;
+        end % test
+    end % while hit_dyn==0 keep looping else fall through
+    
+    % after dynamic criterion is reached by an interpretation node, record
+    % the number of iterations and the final (and *not* normalised) value
+    % of the interpretation node for this sentence in this region
+    out_matrix(deltacounter,1,region,agency,item) = deltacrit;
+    out_matrix(deltacounter,2,region,agency,item) = RRact;
+    out_matrix(deltacounter,3,region,agency,item) = numiterations;
+    
+    % region 3 was guilty
+    region=3;
+    weights=WeightsRegion3;
+    numiterations=1;
+    hit_dyn = 0;
+    
+    % while we have yet to hit dynamic criterion
+    while (hit_dyn == 0)
+        
+        % normalise input nodes
+        den1 = inputnodes(1)+inputnodes(2);
+        den2 = inputnodes(3)+inputnodes(4);
+        den3 = inputnodes(5)+inputnodes(6);
+        den4 = inputnodes(7)+inputnodes(8);
+        den5 = inputnodes(9)+inputnodes(10);
+        den6 = inputnodes(11)+inputnodes(12);
+        inputnodes(1)=inputnodes(1)/den1;
+        inputnodes(2)=inputnodes(2)/den1;
+        inputnodes(3)=inputnodes(3)/den2;
+        inputnodes(4)=inputnodes(4)/den2;
+        inputnodes(5)=inputnodes(5)/den3;
+        inputnodes(6)=inputnodes(6)/den3;
+        inputnodes(7)=inputnodes(7)/den4;
+        inputnodes(8)=inputnodes(8)/den4;
+        inputnodes(9)=inputnodes(9)/den5;
+        inputnodes(10)=inputnodes(10)/den5;
+        inputnodes(11)=inputnodes(11)/den6;
+        inputnodes(12)=inputnodes(12)/den6;
+        
+        % feedforward onto interpretation nodes (is integration)
+        RRact=weights(1)*inputnodes(1)+weights(3)*inputnodes(3)+weights(5)*inputnodes(5)+weights(7)*inputnodes(7)+weights(9)*inputnodes(9)+weights(11)*inputnodes(11);
+        MCact=weights(2)*inputnodes(2)+weights(4)*inputnodes(4)+weights(6)*inputnodes(6)+weights(8)*inputnodes(8)+weights(10)*inputnodes(10)+weights(12)*inputnodes(12);
+        
+        % feedback onto input nodes (is competition)
+        inputnodes(1)=inputnodes(1)+weights(1)*inputnodes(1)*RRact;
+        inputnodes(2)=inputnodes(2)+weights(2)*inputnodes(2)*MCact;
+        inputnodes(3)=inputnodes(3)+weights(3)*inputnodes(3)*RRact;
+        inputnodes(4)=inputnodes(4)+weights(4)*inputnodes(4)*MCact;
+        inputnodes(5)=inputnodes(5)+weights(5)*inputnodes(5)*RRact;
+        inputnodes(6)=inputnodes(6)+weights(6)*inputnodes(6)*MCact;
+        inputnodes(7)=inputnodes(7)+weights(7)*inputnodes(7)*RRact;
+        inputnodes(8)=inputnodes(8)+weights(8)*inputnodes(8)*MCact;
+        inputnodes(9)=inputnodes(9)+weights(9)*inputnodes(9)*RRact;
+        inputnodes(10)=inputnodes(10)+weights(10)*inputnodes(10)*MCact;
+        inputnodes(11)=inputnodes(11)+weights(11)*inputnodes(11)*RRact;
+        inputnodes(12)=inputnodes(12)+weights(12)*inputnodes(12)*MCact;
+        
+        % decrement the dynamic criterion on the first iteration the value
+        % of numiterations is one so dynamic_crit never starts at one, it
+        % is decremented before the test whether either interpretation node
+        % has exceeded the criterion
+        dynamic_crit = 1 - (numiterations * deltacrit);
+        
+        % test whether either interpretation node has reached the dynamic
+        % criterion
+        if ((RRact >= dynamic_crit) || (MCact >= dynamic_crit))
+            hit_dyn = 1;
+        else
+            numiterations=numiterations+1;
+        end % test
+    end % while hit_dyn==0 keep looping else fall through
+    
+    % after dynamic criterion is reached by an interpretation node, record
+    % the number of iterations and the final (and *not* normalised) value
+    % of the interpretation node for this sentence in this region
+    out_matrix(deltacounter,1,region,agency,item) = deltacrit;
+    out_matrix(deltacounter,2,region,agency,item) = RRact;
+    out_matrix(deltacounter,3,region,agency,item) = numiterations;
+    
+    
+end % all sentences are complete for all regions
+
+return % exit norm_recurr return to main to grab another delta
+end % end norm_recurr
+%% function getInputs() gets inputs
+ function [WeightsRegion1, WeightsRegion2,WeightsRegion3,InputnodesAll] = getInputs()
+% READ ALL INPUT FILES, WEIGHTS AND INPUTNODES
+fileID = fopen('region1weights.txt','r');
+formatSpec = '%f %f %f %f %f %f %f %f';
+sizeA = [8 1];
+WeightsRegion1 = fscanf(fileID,formatSpec,sizeA)';
+fclose(fileID);
+
+fileID = fopen('region2weights.txt','r');
+formatSpec = '%f %f %f %f %f %f %f %f %f %f';
+sizeA = [10 1];
+WeightsRegion2 = fscanf(fileID,formatSpec,sizeA)';
+fclose(fileID);
+
+fileID = fopen('region3weights.txt','r');
+formatSpec = '%f %f %f %f %f %f %f %f %f %f %f %f';
+sizeA = [12 1];
+WeightsRegion3 = fscanf(fileID,formatSpec,sizeA)';
+fclose(fileID);
+
+filename='inputnodevalues.txt';
+fileID = fopen(filename,'r');
+formatSpec = '%f %f %f %f %f %f %f %f %f %f %f %f';
+sizeA = [12 80];
+InputnodesAll = fscanf(fileID,formatSpec,sizeA)';
+fclose(fileID);
+end
+%% save results and compute means
+function [mean_itrs,mean_acts] = save_outcomes(out_matrix,numdeltas,numregions,numagencies,numitems)
+
+% make flat file for activations and iterations
+numrows=numdeltas*numregions*numagencies*numitems;
+out_flat=cell(numrows,6);
+
+row=0;
+for delta=1:numdeltas
+    for agency=1:numagencies
+        for region=1:numregions
+            for item=1:numitems
+                row=row+1;
+                out_flat{row,1}=out_matrix(delta,1,region,agency,item);
+                if agency==1
+                    out_flat{row,2}='good_agent';  
+                else
+                    out_flat{row,2}='good_patient';
+                end
+                if region==1
+                    out_flat{row,3}='verb_by';
+                elseif region==2
+                    out_flat{row,3}='agentNP';
+                elseif region==3
+                    out_flat{row,3}='mainVerb';
+                end
+                out_flat{row,4}=item;
+                switch item
+                    case 1 ; firstverb='accused_by';
+                    case 2 ; firstverb='arrested_by';
+                    case 3 ; firstverb='carried_by';
+                    case 4 ; firstverb='convicted_by';
+                    case 5 ; firstverb='cured_by';
+                    case 6 ; firstverb='entertained_by';
+                    case 7 ; firstverb='evaluated_by';
+                    case 8 ; firstverb='fired_by';
+                    case 9 ; firstverb='frightened_by';
+                    case 10 ; firstverb='graded_by';
+                    case 11 ; firstverb='hired_by';
+                    case 12 ; firstverb='hypnotized_by';
+                    case 13 ; firstverb='instructed_by';
+                    case 14 ; firstverb='interrogated_by';
+                    case 15 ; firstverb='interviewed_by';
+                    case 16 ; firstverb='invited_by';
+                    case 17 ; firstverb='questioned_by';
+                    case 18 ; firstverb='rescued_by';
+                    case 19 ; firstverb='sentenced_by';
+                    case 20 ; firstverb='served_by';
+                    case 21 ; firstverb='shot_by';
+                    case 22 ; firstverb='slaughtered_by';
+                    case 23 ; firstverb='terrorized_by';
+                    case 24 ; firstverb='tortured_by';
+                    case 25 ; firstverb='captured_by';
+                    case 26 ; firstverb='chased_by';
+                    case 27 ; firstverb='devoured_by';
+                    case 28 ; firstverb='dismissed_by';
+                    case 29 ; firstverb='examined_by';
+                    case 30 ; firstverb='executed_by';
+                    case 31 ; firstverb='investigated_by';
+                    case 32 ; firstverb='kicked_by';
+                    case 33 ; firstverb='lectured_by';
+                    case 34 ; firstverb='lifted_by';
+                    case 35 ; firstverb='punished_by';
+                    case 36 ; firstverb='recognized_by';
+                    case 37 ; firstverb='searched_by';
+                    case 38 ; firstverb='studied_by';
+                    case 39 ; firstverb='taught_by';
+                    case 40 ; firstverb='worshipped_by';
+                end
+                out_flat{row,5}=firstverb;
+                out_flat{row,6}=out_matrix(delta,2,region,agency,item);
+                out_flat{row,7}=out_matrix(delta,3,region,agency,item);
+               
+            end
+        end
+    end
+end % end of all deltas
+
+OUT_FLAT=cell2table(out_flat,'VariableNames', ...
+    {'Delta','agency','region','item','verbed_by','RRact','numiterations'});
+writetable(OUT_FLAT, 'out_flat.dat','Delimiter','\t')
+
+% compute mean iters and activations
+mean_acts=zeros(numdeltas,7);
+mean_itrs=zeros(numdeltas,7);
+
+for delta = 1:numdeltas
+    % activations
+    mean_acts(delta,1)=mean(out_matrix(delta,1,1,1,:));
+    mean_acts(delta,2)=mean(out_matrix(delta,2,1,1,:));
+    mean_acts(delta,3)=mean(out_matrix(delta,2,2,1,:));
+    mean_acts(delta,4)=mean(out_matrix(delta,2,3,1,:));
+    mean_acts(delta,5)=mean(out_matrix(delta,2,1,2,:));
+    mean_acts(delta,6)=mean(out_matrix(delta,2,2,2,:));
+    mean_acts(delta,7)=mean(out_matrix(delta,2,3,2,:));
+    % iterations
+    mean_itrs(delta,1)=mean(out_matrix(delta,1,1,1,:));
+    mean_itrs(delta,2)=mean(out_matrix(delta,3,1,1,:));
+    mean_itrs(delta,3)=mean(out_matrix(delta,3,2,1,:));
+    mean_itrs(delta,4)=mean(out_matrix(delta,3,3,1,:));
+    mean_itrs(delta,5)=mean(out_matrix(delta,3,1,2,:));
+    mean_itrs(delta,6)=mean(out_matrix(delta,3,2,2,:));
+    mean_itrs(delta,7)=mean(out_matrix(delta,3,3,2,:));
+end
+
+MEAN_ACTS=array2table(mean_acts,'VariableNames', ...
+    {'Delta','R1_a_rr','R2_a_rr','R3_a_rr','R1_p_rr','R2_p_rr','R3_p_rr'});
+writetable(MEAN_ACTS, 'out_activations_means.dat','Delimiter','\t')
+
+MEAN_ITRS=array2table(mean_itrs,'VariableNames', ...
+    {'Delta','R1_a','R2_a','R3_a','R1_p','R2_p','R3_p'});
+writetable(MEAN_ITRS, 'out_iterations_means.dat','Delimiter','\t')
+end % save_outcomes
+
+%% plot function reproduces MST98 fig 3
+function plotmst98fig3(mean_itrs,mean_acts)
+
+% mst98 fig 3
+lines = zeros(2,3); % initialise matrix to hold y values
+means_i = mean(mean_itrs); % compute y values : iterations
+lines(1,:) = means_i(2:4); % y values for first line (good agents iterations)
+lines(2,:) = means_i(5:7); % y values for second line (good patients iterations)
+means_a=mean(mean_acts); % numeric labels for points are activations
+x=1:3; % 3 regions on the x axis
+figure('Visible','on', 'WindowStyle','docked', 'Name','mst98fig3');
+plot(x,lines(1,:)','-o','MarkerSize',10, 'MarkerFaceColor', 'white') % plot solid line with opaque circles as points
+hold on; % permit additional plotting
+text(x(1)-.05,lines(1,1)-2,num2str(means_a(2),2)); % put the numbers for activations by the points
+text(x(2)-.05,lines(1,2)-2,num2str(means_a(3),2));
+text(x(3)-.05,lines(1,3)-2,num2str(means_a(4),2));
+plot(x, lines(2,:)', '-s', 'MarkerSize', 10, 'MarkerFaceColor','white') % plot solid line with opaque squares as points
+text(x(1)-.05,lines(2,1)-2,num2str(means_a(5),2)); % put the numbers for activations by the points
+text(x(2)-.05,lines(2,2)-2,num2str(means_a(6),2));
+text(x(3)-.05,lines(2,3)-2,num2str(means_a(7),2));
+hlegend=legend('Good Agents','Good Patients'); % make the legend but don't put it yet
+set(hlegend,'FontSize',14); % bigger legend text
+legend boxoff; % no box round legend
+dim = [.2 .5 .3 .3]; % annotation location as proportion of plot real estate
+str = 'Numbers are mean activation values of the RR interpretation node following competition in that region'; % annotation string
+annotation('textbox',dim,'String',str,'FitBoxToText','on'); % put the annotation on
+axis([0.5 3.5 0 50]); % axis limits
+ax = gca; % get a handle for axis is gca
+ax.XTick=[1 2 3 ]; % put the x ticks
+ax.XTickLabel = {'arrested by','the detective','was guilty'}; % put the x tick labels
+ylabel('iterations'); % put the y axis label
+title('reproducing MST98 fig 3'); % put the title
+saveas(gcf,'MST_1998_fig3_reproduction.jpg') % save the graph to file
+end
+
+##### SOURCE END #####
+--></body></html>
