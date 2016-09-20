@@ -1,2 +1,2 @@
 # competition-integration-model
-A model of reading times for syntactically ambiguous sentences.
+My MATLAB implementation of McRae, Spivey-Knowlton and Tanenhaus' 1998 model of reading times for syntactically ambiguous sentences.
