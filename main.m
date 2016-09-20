@@ -452,4 +452,5 @@ ax.XTick=[1 2 3 ]; % put the x ticks
 ax.XTickLabel = {'arrested by','the detective','was guilty'}; % put the x tick labels
 ylabel('iterations'); % put the y axis label
 title('reproducing MST98 fig 3'); % put the title
+saveas(gcf,'MST_1998_fig3_reproduction.jpg') % save the graph to file
 end
